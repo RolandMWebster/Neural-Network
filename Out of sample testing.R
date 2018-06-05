@@ -9,7 +9,7 @@ for(batchNo in 1:(kTestObs/kBatchSize)){
   
   # Here we need to assign our input values given our batches
   
-  a_neurons[[1]] <- test.input[,(((batchNo-1)*kBatchSize) + 1):(kBatchSize*batchNo)]
+  a.neurons[[1]] <- test.input[,(((batchNo-1)*kBatchSize) + 1):(kBatchSize*batchNo)]
   
   input.labels <- test.labels[,(((batchNo-1)*kBatchSize) + 1):(kBatchSize*batchNo)]
   
@@ -20,15 +20,15 @@ for(batchNo in 1:(kTestObs/kBatchSize)){
   # Feedforward  
   for(i in 2:kNetworkLength){
     
-    z_neurons[[i]] <- (weights[[i]] %*% a_neurons[[i-1]]) + biases[[i]] 
-    a_neurons[[i]] <- sigmoid(z_neurons[[i]])
+    z.neurons[[i]] <- (weights[[i]] %*% a.neurons[[i-1]]) + biases[[i]] 
+    a.neurons[[i]] <- sigmoid(z.neurons[[i]])
     
   }
   
   
   # Store Results -----------------------------------------------------------
   
-  predictions <- sapply(as.data.frame(a_neurons[[kNetworkLength]]),
+  predictions <- sapply(as.data.frame(a.neurons[[kNetworkLength]]),
                         function(x){
                           x <- which.max(x)
                           output <- array(data = rep(0,kNetworkShape[kNetworkLength]))

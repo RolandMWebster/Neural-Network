@@ -27,7 +27,7 @@ names(list.skeleton) <- c(1:kNetworkLength)
 # Change the value of each element in our list to match its name.
 # This allows use to use as simple lapply call to build our lists.
 for(i in 1:kNetworkLength){
-  list.skeleton[i] <- as.numeric(names(list.skeleton[i]))
+list.skeleton[i] <- as.numeric(names(list.skeleton[i]))
 }
 
 
@@ -35,37 +35,37 @@ for(i in 1:kNetworkLength){
 
 # Start by randomly generating values from a standard normal distribution.
 weights <- lapply(list.skeleton,
-                  function(x){
-                    x <- array(data = rnorm(n = kNetworkShape[x]*kNetworkShape[x-1],
-                                            0,
-                                            1),
-                               dim = c(kNetworkShape[x],
-                                       kNetworkShape[x-1]))
-                  })
+                function(x){
+                  x <- array(data = rnorm(n = kNetworkShape[x]*kNetworkShape[x-1],
+                                          0,
+                                          1),
+                             dim = c(kNetworkShape[x],
+                                     kNetworkShape[x-1]))
+                })
 
 
 # Biases ------------------------------------------------------------------
 
 # Start by randomly generating values from a standard normal distribution.
 biases <- lapply(list.skeleton,
-                 function(x){
-                   x <- array(data = rnorm(n = kNetworkShape[x],
-                                           0,
-                                           1),
-                              dim = c(kNetworkShape[x],
-                                      kBatchSize)) # We duplicate our bias vectors so we can multiply with each observation of our batch.
-                 })
+               function(x){
+                 x <- array(data = rnorm(n = kNetworkShape[x],
+                                         0,
+                                         1),
+                            dim = c(kNetworkShape[x],
+                                    kBatchSize)) # We duplicate our bias vectors so we can multiply with each observation of our batch.
+               })
 
 
 
 # Activation of Neurons ---------------------------------------------------
 
 a.neurons <- lapply(list.skeleton,
-                    function(x){
-                      x <- array(data = c(0), # Fill with 0s for now.
-                                 dim = c(kNetworkShape[x],
-                                         kBatchSize))
-                    })
+                  function(x){
+                    x <- array(data = c(0), # Fill with 0s for now.
+                               dim = c(kNetworkShape[x],
+                                       kBatchSize))
+                  })
 
 
 
@@ -73,21 +73,21 @@ a.neurons <- lapply(list.skeleton,
 # Weighted Activation of Neurons ------------------------------------------
 
 z.neurons <- lapply(list.skeleton,
-                    function(x){
-                      x <- array(data = c(0), # Fill with 0s for now.
-                                 dim = c(kNetworkShape[x],
-                                         kBatchSize))
-                    })
+                  function(x){
+                    x <- array(data = c(0), # Fill with 0s for now.
+                               dim = c(kNetworkShape[x],
+                                       kBatchSize))
+                  })
 
 
 # Errors ------------------------------------------------------------------
 
 errors <- lapply(list.skeleton,
-                    function(x){
-                      x <- array(data = c(0), # Fill with 0s for now.
-                                 dim = c(kNetworkShape[x],
-                                         kBatchSize))
-                    })
+                  function(x){
+                    x <- array(data = c(0), # Fill with 0s for now.
+                               dim = c(kNetworkShape[x],
+                                       kBatchSize))
+                  })
 
 
 # Start Time Log ----------------------------------------------------------
@@ -96,10 +96,10 @@ start.time <- Sys.time()
 
 # Start of Epoch Loop -----------------------------------------------------
 for(epoch in 1:kEpochs){
-  
+
 # Shuffle our data and create our batches
 sample <- sample.int(kTrainObs,
-                     replace = FALSE)
+                   replace = FALSE)
 
 shuffled.data <- train.input[,sample]
 shuffled.labels <- train.labels[,sample]
@@ -125,22 +125,22 @@ input.labels <- shuffled.labels[,(((batchNo-1)*kBatchSize) + 1):(kBatchSize*batc
 
 # Feedforward  
 for(i in 2:kNetworkLength){
-  
-  z.neurons[[i]] <- (weights[[i]] %*% a.neurons[[i-1]]) + biases[[i]] 
-  a.neurons[[i]] <- sigmoid(z.neurons[[i]])
-  
+
+z.neurons[[i]] <- (weights[[i]] %*% a.neurons[[i-1]]) + biases[[i]] 
+a.neurons[[i]] <- sigmoid(z.neurons[[i]])
+
 }
 
 
 # Store Results -----------------------------------------------------------
 
 predictions <- sapply(as.data.frame(a.neurons[[kNetworkLength]]),
-                      function(x){
-                        x <- which.max(x)
-                        output <- array(data = rep(0,kNetworkShape[kNetworkLength]))
-                        output[x] <- 1
-                        output
-                        })
+                    function(x){
+                      x <- which.max(x)
+                      output <- array(data = rep(0,kNetworkShape[kNetworkLength]))
+                      output[x] <- 1
+                      output
+                      })
 
 # Update correctly predicted counter to tell us how well our model is doing.
 correctly.predicted <- correctly.predicted + sum(input.labels * predictions)
@@ -153,9 +153,9 @@ errors[[kNetworkLength]] <- (a.neurons[[kNetworkLength]] - input.labels) * diff_
 # Backpropagate the error -------------------------------------------------
 
 for(i in (kNetworkLength - 1):2){
-  
-  errors[[i]] <- (t(weights[[i+1]]) %*% errors[[i+1]]) * diff_sigmoid(z.neurons[[i]])
-  
+
+errors[[i]] <- (t(weights[[i+1]]) %*% errors[[i+1]]) * diff_sigmoid(z.neurons[[i]])
+
 }
 
 
@@ -170,13 +170,13 @@ biases[[i]] <- biases[[i]] - ((kTrainingRate / kBatchSize) * colSums(errors[[i]]
 } # End of batch loop
 
 print(paste0(epoch,
-             ": ", 
-             correctly.predicted, 
-             " / ", 
-             kTrainObs,
-             " (",
-             100*correctly.predicted/kTrainObs,
-             "%)"))
+           ": ", 
+           correctly.predicted, 
+           " / ", 
+           kTrainObs,
+           " (",
+           100*correctly.predicted/kTrainObs,
+           "%)"))
 
 
 } # End of Epoch loop

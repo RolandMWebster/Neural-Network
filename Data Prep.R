@@ -38,7 +38,7 @@ train.data <- train.data[sample.int(nrow(train.data),
 
 # For now we will use 50,000 of the 60,000 observations to train our model.
 # The remaining 10,000 will be used to test the model performance.
-kTrainObs <- 50000
+kTrainObs <- 20000
 
 
 # Creating Model Input ----------------------------------------------------
