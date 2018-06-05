@@ -24,8 +24,8 @@ list.skeleton <- as.list(kNetworkShape)
 # in the model.
 names(list.skeleton) <- c(1:kNetworkLength)
 
-# Change the value of each element in weights to match its name.
-# This makes for a simple lapply call next to generate the weight matrices.
+# Change the value of each element in our list to match its name.
+# This allows use to use as simple lapply call to build our lists.
 for(i in 1:kNetworkLength){
   list.skeleton[i] <- as.numeric(names(list.skeleton[i]))
 }
@@ -33,7 +33,7 @@ for(i in 1:kNetworkLength){
 
 # Weights -----------------------------------------------------------------
 
-# We randomly generate values using a standard normal distribution.
+# Start by randomly generating values from a standard normal distribution.
 weights <- lapply(list.skeleton,
                   function(x){
                     x <- array(data = rnorm(n = kNetworkShape[x]*kNetworkShape[x-1],
@@ -46,6 +46,7 @@ weights <- lapply(list.skeleton,
 
 # Biases ------------------------------------------------------------------
 
+# Start by randomly generating values from a standard normal distribution.
 biases <- lapply(list.skeleton,
                  function(x){
                    x <- array(data = rnorm(n = kNetworkShape[x],
@@ -61,7 +62,7 @@ biases <- lapply(list.skeleton,
 
 a.neurons <- lapply(list.skeleton,
                     function(x){
-                      x <- array(data = c(0),
+                      x <- array(data = c(0), # Fill with 0s for now.
                                  dim = c(kNetworkShape[x],
                                          kBatchSize))
                     })
@@ -73,7 +74,7 @@ a.neurons <- lapply(list.skeleton,
 
 z.neurons <- lapply(list.skeleton,
                     function(x){
-                      x <- array(data = c(0),
+                      x <- array(data = c(0), # Fill with 0s for now.
                                  dim = c(kNetworkShape[x],
                                          kBatchSize))
                     })
@@ -83,7 +84,7 @@ z.neurons <- lapply(list.skeleton,
 
 errors <- lapply(list.skeleton,
                     function(x){
-                      x <- array(data = c(0),
+                      x <- array(data = c(0), # Fill with 0s for now.
                                  dim = c(kNetworkShape[x],
                                          kBatchSize))
                     })
