@@ -1,3 +1,11 @@
+
+# Info --------------------------------------------------------------------
+
+# Data prep code for the model.
+# This script is used to load in the raw .csv file and format it ready for the model.
+# This includes creating a train/test split of the data.
+
+
 # Packages ----------------------------------------------------------------
 
 library(tidyr)
