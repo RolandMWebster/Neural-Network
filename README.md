@@ -19,7 +19,7 @@ This page provides a .csv file that can be read into R instead of reading in the
 3. Functions.R
 4. Model v1.0.R
 
-Outline:
+**Outline:**
 1. Read-in .csv data file and prepare it for the model. This includes a train/test split.
 2. Plot the images. It helps bridge the gap between a .csv filled with numbers and the images they represent.
 3. User defined functions used in the model.
