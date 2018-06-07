@@ -121,7 +121,8 @@ tile.plot <- ggplot(train.tidied,
                         fill = pixel_value)) +
   geom_tile() +
   geom_text(aes(x = 0, y = 0, label = value, col = "red")) +
-  facet_wrap(~observation)
+  facet_wrap(~observation) +
+  theme(legend.position = "none")
 
 plot(tile.plot)
 ```
