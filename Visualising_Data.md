@@ -1,4 +1,4 @@
-Neural Network Results
+Visualising the Data
 ================
 
 Outline
