@@ -115,13 +115,15 @@ Plot the Data
 The tidy format of data also works very well for ggplot. See how simple it is to create quite complicated plots.
 
 ``` r
-ggplot(train.tidied,
-       aes(x = x_pos,
-           y = y_pos,
-           fill = pixel_value)) +
+image.plot <- ggplot(train.tidied,
+                     aes(x = x_pos,
+                         y = y_pos,
+                         fill = pixel_value)) +
   geom_tile() +
   geom_text(aes(x = 0, y = 0, label = value, col = "red")) +
   facet_wrap(~observation)
+
+plot(image.plot)
 ```
 
 ![](Visualising_Data_files/figure-markdown_github/unnamed-chunk-7-1.png)
