@@ -1,111 +1,99 @@
 Neural Network Results
 ================
-Roland Webster
-5 June 2018
 
 Outline
 -------
 
-Train the model and analyse performance.
+In this markdown file we walkthrough my construction of a neural network 'from scratch'. Information on any reading material that I have used is available from the readme file contained within this repository. The goal of the model is to correctly classify images of handwritten digits 0-9 from the MNIST data set.
 
 Data Prep
 ---------
 
-``` r
-# Packages ----------------------------------------------------------------
+We load our packages into the session library:
 
+``` r
 library(tidyr)
-```
-
-    ## Warning: package 'tidyr' was built under R version 3.4.1
-
-``` r
 library(plyr)
 library(dplyr)
-```
-
-    ## Warning: package 'dplyr' was built under R version 3.4.1
-
-    ## 
-    ## Attaching package: 'dplyr'
-
-    ## The following objects are masked from 'package:plyr':
-    ## 
-    ##     arrange, count, desc, failwith, id, mutate, rename, summarise,
-    ##     summarize
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     filter, lag
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     intersect, setdiff, setequal, union
-
-``` r
 library(ggplot2)
 ```
 
-    ## Warning: package 'ggplot2' was built under R version 3.4.1
+Read in Data
+------------
+
+We now read in our data using the read.csv function. This data contains the pixel data for our handwritten numbers 1-9. The format of this data is outlined in the visualising data markdown file contained within this repository.
 
 ``` r
-# Read in Data ------------------------------------------------------------
-
-train.data <- read.csv("mnist_train.csv",
+model.data <- read.csv("mnist_train.csv",
                        stringsAsFactors = FALSE, 
                        header = FALSE)
-# Notes: Each row of train.data is an image. Data is arranged as: row 1 col 1, row 1 col 2, ... 
+```
 
+Set our Seed
+------------
 
-# Set Seed ----------------------------------------------------------------
+We set our seed, this will allow us to reproduce our results.
 
+``` r
 set.seed(1111)
+```
 
+Shuffle the Data
+----------------
 
-# Shuffle Data ------------------------------------------------------------
+We shuffle the training data to remove any ordered patterns that might be present in the data we've used. For example it's possible the data is ordered such that all the 0 digits appear in the first rows, then the 1s, then the 2s, etc. We want the distribution of digits in our train and test data sets to reflect the distribtuion of digits in the whole data set. That is, we don't want all our 9s going into the test set and none going into the train set, as our model won't stand a chance at guessing that! Shuffling the data and removing any ordering will avoid this problem from occuring.
 
-# We shuffle the data to make we have an appropriate distribution of each number
-# in both the training and test data sets.
-train.data <- train.data[sample.int(nrow(train.data),
+``` r
+model.data <- model.data[sample.int(nrow(model.data),
                                     replace = FALSE),]
+```
 
+Define the Training Observations
+--------------------------------
 
-# Define Train Observations -----------------------------------------------
+We will use 50,000 of the 60,000 observations to train our model. The remaining 10,000 will be used to test the model performance.
 
-# For now we will use 50,000 of the 60,000 observations to train our model.
-# The remaining 10,000 will be used to test the model performance.
+``` r
 kTrainObs <- 50000
 
+train.input <- model.data[(1:kTrainObs),-1]
+```
 
-# Creating Model Input ----------------------------------------------------
+Our pixel values range from 0-255, with 0 being solid black and 255 being solid white. We ned to standardize our pixel values, mapping them onto \[0,1\]. This stops our sigmoid function from geting caught at its limits (where the gradient is particularly shallow) and not converging. We also transpose our data, this is a personal preference for working with column vectors rather than rows.
 
-# Select the columns that contain pixel values for each image. We are deselecting
-# the first column which contains the value of the handwritten digit.
-train.input <- train.data[(1:kTrainObs),-1]
-
-# Our pixel values range from 0-255, with 0 being solid black and 255 being solid white.
-# Standardize our pixel values, mapping them onto [0,1]
-# This stops our sigmoid function from geting caught at the limits (where the gradient is
-# particularly shallow.)
+``` r
 train.input <- train.input / max(train.input)
 
-# Transpose our data (personal preference)
 train.input <- t(train.input)
+```
 
-# Seperate our train labels.
-train.labels <- train.data[(1:kTrainObs),1]
+Training Labels.
+----------------
 
-# Transform our labels from single values to vectors of length 10.
-# Start with an array of dimensions (1,10), populated with 1s.
+We create a vector of train labels, these are the actual values of our images.
+
+``` r
+train.labels <- model.data[(1:kTrainObs),1]
+```
+
+Now we need to transform our single value labels into binary vectors of length 10. This will allow the model to correctly attribute the error at each step.
+
+Start with an array of dimensions (1,10), populated with 1s.
+
+``` r
 skeleton <- array(data = rep(1,10),
                   dim = c(1,10))
+```
 
-# Mulitply these to get a vector for each image label.
-# Each vector contains the value of the image repeated in each element.
+Mulitply these to get a vector for each image label. Each vector contains the value of the image, repeated in each element.
+
+``` r
 train.labels <- train.labels %*% skeleton
+```
 
-# Let x be an image label and v the corresponding vector
-# Then for v_i where i = x, set equal to 1 and set equal to 0 otherwise.
+Let x be an image label and v the corresponding vector. Then for v\_i where i = x, set equal to 1 and set equal to 0 otherwise.
+
+``` r
 for(i in 1:ncol(train.labels)){
   for(j in 1:nrow(train.labels)){
     if(train.labels[j,i] == i-1){
@@ -114,22 +102,27 @@ for(i in 1:ncol(train.labels)){
       }
   }
 }
+```
 
-# Transpose labels (personal preference)
+Transpose labels (to conform with our earlier transposed vector)
+
+``` r
 train.labels <- t(train.labels)
+```
 
+Creating Test Data
+------------------
 
-# Creating Test Data ------------------------------------------------------
+We simply repeat exactly what we did for the train data, but on the test data.
 
-# Perform exactly the same for the test data.
-
-test.input <- train.data[(kTrainObs+1):nrow(train.data),-1]
+``` r
+test.input <- model.data[(kTrainObs+1):nrow(model.data),-1]
 
 test.input <- test.input / max(test.input)
 
 test.input <- t(test.input)
 
-test.labels <- train.data[(kTrainObs+1):nrow(train.data),1]
+test.labels <- model.data[(kTrainObs+1):nrow(model.data),1]
 
 skeleton <- array(data = rep(1,10),
                   dim = c(1,10))
@@ -151,23 +144,28 @@ test.labels <- t(test.labels)
 User Defined Functions
 ----------------------
 
+Now that we've got our data all sorted, we can start thinking about the model. We create a couple of user defined functions, the sigmoid function and its derivative. These are used to calculate cost in the model.
+
 ``` r
-# Define Sigmoid Function -------------------------------------------------
-
-# Define our sigmoid function. This is used to map neuron values onto (0,1)
-
 sigmoid <- function(x){
   1/(1 + exp(-x))
 }
 
-# Define our first derivative of the sigmoid function. This is used when calculating the error.
 diff_sigmoid <- function(x){
   sigmoid(x) * (1 - sigmoid(x))
 }
 ```
 
-Train Model
------------
+Prepping the Model
+------------------
+
+The final step before training the model is a little bit of preperation work. We specify a network shape parameter. This is a vector of length l, where l is the number of layers in the network. Each element in l is the number of nodes in its respective layer.
+
+We also define batch size, to determine how many observations are passed per batch, the training rate to tune how fast the model learns and the number of epochs, this is the number of times the full data set is passed.
+
+We are going to use a model with a single hidden layer of 30 nodes. The nodes in the first layer correspond to the individual pixels in the input images and the nodes in the third layer correspond to the possible classifications, 0-9.
+
+We use a batch size of 10, training rate of 3 and we run 30 epochs. I've played about with this and it's interesting to tune, the fun part is completely changing the shape of the network using the kNetworkShape parameter!
 
 ``` r
 # Model Parameters --------------------------------------------------------
@@ -178,7 +176,11 @@ kTrainingRate <- 3 # The training rate for the model.
 kEpochs <- 30 # Number of times the full data set is passed through the model.
 
 kNetworkLength <- length(kNetworkShape) # Total number of layers in the model.
+```
 
+We then create some empty 'skeleton' elements. These contain the structure for our network, weights, biases, neurons and errors, ready to be populated as the model trains.
+
+``` r
 # Skeleton List -----------------------------------------------------------
 
 # Create appropriately sized list for the weights, biases and neurons.
@@ -253,12 +255,20 @@ errors <- lapply(list.skeleton,
                                dim = c(kNetworkShape[x],
                                        kBatchSize))
                   })
+```
 
+Training the Model
+------------------
 
-# Start Time Log ----------------------------------------------------------
+Now the fun part, we can start training the model. We set a time log to capture the amount of time taken to train the model
 
+``` r
 start.time <- Sys.time()
+```
 
+... and away we go!
+
+``` r
 # Start of Epoch Loop -----------------------------------------------------
 for(epoch in 1:kEpochs){
 
@@ -345,47 +355,45 @@ print(paste0(epoch,
 
 
 } # End of Epoch loop
-```
+## [1] "1: 39502 / 50000 (79.004%)"
+## [1] "2: 45555 / 50000 (91.11%)"
+## [1] "3: 46280 / 50000 (92.56%)"
+## [1] "4: 46658 / 50000 (93.316%)"
+## [1] "5: 46927 / 50000 (93.854%)"
+## [1] "6: 47146 / 50000 (94.292%)"
+## [1] "7: 47312 / 50000 (94.624%)"
+## [1] "8: 47437 / 50000 (94.874%)"
+## [1] "9: 47493 / 50000 (94.986%)"
+## [1] "10: 47628 / 50000 (95.256%)"
+## [1] "11: 47719 / 50000 (95.438%)"
+## [1] "12: 47833 / 50000 (95.666%)"
+## [1] "13: 47937 / 50000 (95.874%)"
+## [1] "14: 47933 / 50000 (95.866%)"
+## [1] "15: 47979 / 50000 (95.958%)"
+## [1] "16: 48062 / 50000 (96.124%)"
+## [1] "17: 48090 / 50000 (96.18%)"
+## [1] "18: 48172 / 50000 (96.344%)"
+## [1] "19: 48226 / 50000 (96.452%)"
+## [1] "20: 48256 / 50000 (96.512%)"
+## [1] "21: 48309 / 50000 (96.618%)"
+## [1] "22: 48319 / 50000 (96.638%)"
+## [1] "23: 48382 / 50000 (96.764%)"
+## [1] "24: 48437 / 50000 (96.874%)"
+## [1] "25: 48442 / 50000 (96.884%)"
+## [1] "26: 48468 / 50000 (96.936%)"
+## [1] "27: 48494 / 50000 (96.988%)"
+## [1] "28: 48507 / 50000 (97.014%)"
+## [1] "29: 48542 / 50000 (97.084%)"
+## [1] "30: 48571 / 50000 (97.142%)"
 
-    ## [1] "1: 39502 / 50000 (79.004%)"
-    ## [1] "2: 45555 / 50000 (91.11%)"
-    ## [1] "3: 46280 / 50000 (92.56%)"
-    ## [1] "4: 46658 / 50000 (93.316%)"
-    ## [1] "5: 46927 / 50000 (93.854%)"
-    ## [1] "6: 47146 / 50000 (94.292%)"
-    ## [1] "7: 47312 / 50000 (94.624%)"
-    ## [1] "8: 47437 / 50000 (94.874%)"
-    ## [1] "9: 47493 / 50000 (94.986%)"
-    ## [1] "10: 47628 / 50000 (95.256%)"
-    ## [1] "11: 47719 / 50000 (95.438%)"
-    ## [1] "12: 47833 / 50000 (95.666%)"
-    ## [1] "13: 47937 / 50000 (95.874%)"
-    ## [1] "14: 47933 / 50000 (95.866%)"
-    ## [1] "15: 47979 / 50000 (95.958%)"
-    ## [1] "16: 48062 / 50000 (96.124%)"
-    ## [1] "17: 48090 / 50000 (96.18%)"
-    ## [1] "18: 48172 / 50000 (96.344%)"
-    ## [1] "19: 48226 / 50000 (96.452%)"
-    ## [1] "20: 48256 / 50000 (96.512%)"
-    ## [1] "21: 48309 / 50000 (96.618%)"
-    ## [1] "22: 48319 / 50000 (96.638%)"
-    ## [1] "23: 48382 / 50000 (96.764%)"
-    ## [1] "24: 48437 / 50000 (96.874%)"
-    ## [1] "25: 48442 / 50000 (96.884%)"
-    ## [1] "26: 48468 / 50000 (96.936%)"
-    ## [1] "27: 48494 / 50000 (96.988%)"
-    ## [1] "28: 48507 / 50000 (97.014%)"
-    ## [1] "29: 48542 / 50000 (97.084%)"
-    ## [1] "30: 48571 / 50000 (97.142%)"
-
-``` r
 print(Sys.time() - start.time)
+## Time difference of 2.955003 mins
 ```
-
-    ## Time difference of 4.293096 mins
 
 Test Out of Sample Performance
 ------------------------------
+
+The model isn't doing badly on the in sample data, with a maximum classification rate of 97.14%. But of course this doesn't tell us the full story, we need to test the model on out of sample data. This will show us how well the model classifies hand written numbers that it has never seen before.
 
 ``` r
 # Out of sample testing ---------------------------------------------------
@@ -438,6 +446,16 @@ print(paste0("Correctly classified: ",
             " (",
             100*(correctly.predicted.test / ncol(test.input)),
             "%)"))
+## [1] "Correctly classified: 9461/10000 (94.61%)"
 ```
 
-    ## [1] "Correctly classified: 9461/10000 (94.61%)"
+A classification rate of 94.61%. Not as good as the in sample rate of course, but not bad either!
+
+Ending Notes
+------------
+
+Overall I am satisfied with the performance of the model. I'm sure there are improvements to make by tuning it, using more data, or even changing the cost function but I'm happy with a 94.61% classification rate on the out of sample data.
+
+Since this was mostly an exercise in constructing a model, and not training the best model I could, I suppose I should comment on the construction. I think I've done a good job of avoiding the dreaded for loops where I can, and that has paid off in the train time, with the model taking only 1.7 minutes to run 30 passes of 50,000 observations.
+
+The next steps could involve looking at changing the cost function used. However, I am particularly interested in looking at constructing some sort of targetted attack on the model and have been playing around with that. Stay tuned and thanks for reading!
