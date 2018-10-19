@@ -6,7 +6,7 @@ The purpose of the neural network is to classify the images from the MNIST datas
 I have used the following page to guide me through the model building process:
 http://neuralnetworksanddeeplearning.com/
 
-This page supplies all of the learning material required to build the model. It also provides a guide in Python to building your own model, however I have no Python experience so that wasn't much help to me!
+This page supplies all of the learning material required to build the model. It also provides a guide in Python to building your own model. However, at the current time of building the model I have no Python experience!
 
 I have taken the dataset from the below page. This page provides a .csv file that can be read into R instead of reading in the images directly.
 
